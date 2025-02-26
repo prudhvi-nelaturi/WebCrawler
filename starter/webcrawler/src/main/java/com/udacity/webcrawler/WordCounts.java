@@ -26,19 +26,20 @@ final class WordCounts {
    * @return a map containing the top {@param popularWordCount} words and counts in the right order.
    */
   static Map<String, Integer> sort(Map<String, Integer> wordCounts, int popularWordCount) {
-
-    // TODO: Reimplement this method using only the Stream API and lambdas and/or method references.
-
-    PriorityQueue<Map.Entry<String, Integer>> sortedCounts =
-        new PriorityQueue<>(wordCounts.size(), new WordCountComparator());
-    sortedCounts.addAll(wordCounts.entrySet());
-    Map<String, Integer> topCounts = new LinkedHashMap<>();
-    for (int i = 0; i < Math.min(popularWordCount, wordCounts.size()); i++) {
-      Map.Entry<String, Integer> entry = sortedCounts.poll();
-      topCounts.put(entry.getKey(), entry.getValue());
-    }
-    return topCounts;
+    return wordCounts.entrySet().stream()
+            .sorted((a, b) -> {
+              if (!a.getValue().equals(b.getValue())) {
+                return b.getValue() - a.getValue(); // Sort by frequency (descending)
+              }
+              if (a.getKey().length() != b.getKey().length()) {
+                return b.getKey().length() - a.getKey().length(); // Sort by length (descending)
+              }
+              return a.getKey().compareTo(b.getKey()); // Sort alphabetically
+            })
+            .limit(popularWordCount) // Limit to top N popular words
+            .collect(LinkedHashMap::new, (map, entry) -> map.put(entry.getKey(), entry.getValue()), Map::putAll);
   }
+
 
   /**
    * A {@link Comparator} that sorts word count pairs correctly:
